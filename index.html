@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Irundo Tjednik · Broj 5 · 16.11.2026.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Fira+Sans:ital,wght@0,400;0,500;0,700;0,800;1,400;1,500&display=swap&subset=latin-ext" rel="stylesheet">
+<style>
+/* ============================================================
+   BOJE I FONTOVI: ovdje zamijeni Irundo brand bojama ako treba
+   ============================================================ */
+:root{
+  --ink:#22313d;
+  --head:#2b4158;
+  --paper:#ffffff;
+  --tint:#eef2f5;
+  --green:#3a5c73;
+  --slate:#3a5c73;
+  --navy:#2b4158;
+  --accent:#a8873a;
+  --gold:#b8973f;
+  --red:#c0453a;
+  --muted:#6b7785;
+  --line:#dde3e8;
+  --serif:'Fira Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --display:'Fira Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --sans:'Fira Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --tab:'Anton', Impact, 'Arial Narrow Bold', sans-serif;
+  --pw:560px; --ph:792px; --fs:12px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;font-family:var(--sans);
+  background:radial-gradient(ellipse at 50% 30%,#4d6f88 0%,#2f4a61 60%,#22374a 100%);color:var(--ink);
+  -webkit-tap-highlight-color:transparent}
+#src{display:none}
+
+/* ---------- KNJIGA ---------- */
+#stage{position:fixed;left:0;right:0;top:0;bottom:64px;display:flex;align-items:center;justify-content:center}
+#book{position:relative;width:calc(var(--pw) * 2);height:var(--ph);perspective:3200px;
+  transition:transform .8s cubic-bezier(.4,.1,.2,1)}
+.single #book{width:var(--pw);perspective:2200px}
+.leaf{position:absolute;top:0;left:50%;width:50%;height:100%;transform-origin:0 50%;
+  transform-style:preserve-3d;transition:transform .95s cubic-bezier(.45,.05,.25,1);cursor:pointer}
+.single .leaf{left:0;width:100%;transition-duration:.65s;cursor:default}
+.leaf.flipped{transform:rotateY(-180deg)}
+.face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;
+  background:var(--paper);overflow:hidden}
+.face.back{transform:rotateY(180deg)}
+.face::after{content:"";position:absolute;inset:0;pointer-events:none}
+.face.front::after{background:linear-gradient(90deg,rgba(0,0,0,.16) 0,rgba(0,0,0,.04) 3%,rgba(0,0,0,0) 8%)}
+.face.back::after{background:linear-gradient(270deg,rgba(0,0,0,.16) 0,rgba(0,0,0,.04) 3%,rgba(0,0,0,0) 8%)}
+.single .face::after{display:none}
+.single .face{border-radius:6px}
+#book::before{content:"";position:absolute;top:0;bottom:0;left:var(--shL,0);right:var(--shR,0);box-shadow:0 22px 60px rgba(0,0,0,.5);
+  transition:left .8s,right .8s;pointer-events:none}
+.single #book::before{left:0;right:0;border-radius:6px}
+
+/* ---------- TOOLBAR ---------- */
+#bar{position:fixed;left:0;right:0;bottom:0;height:64px;display:flex;align-items:center;justify-content:center;gap:8px;
+  padding:0 10px;padding-bottom:env(safe-area-inset-bottom)}
+#bar button{font:600 14px/1 var(--sans);color:#fff;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16);
+  border-radius:999px;height:40px;min-width:40px;padding:0 14px;cursor:pointer;transition:background .2s}
+#bar button:hover{background:rgba(255,255,255,.22)}
+#bar button:disabled{opacity:.35;cursor:default}
+#ind{color:#e9eef2;font:600 13px/1 var(--sans);min-width:118px;text-align:center;letter-spacing:.02em}
+#hint{position:fixed;left:50%;top:14px;transform:translateX(-50%);background:rgba(0,0,0,.55);color:#fff;
+  font:500 13px/1.3 var(--sans);padding:8px 14px;border-radius:999px;transition:opacity 1s;pointer-events:none;white-space:nowrap}
+#toc{position:fixed;inset:0;background:rgba(15,20,25,.82);display:none;align-items:center;justify-content:center;z-index:9999}
+#toc.open{display:flex}
+#toc .tbox{background:var(--paper);border-radius:10px;max-width:420px;width:calc(100% - 32px);max-height:80vh;overflow:auto;padding:22px 24px}
+#toc h3{font:800 22px/1.1 var(--display);margin:0 0 12px}
+#toc a{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--line);
+  color:var(--ink);text-decoration:none;font:500 15px/1.3 var(--sans);cursor:pointer}
+#toc a b{color:var(--accent)}
+
+/* ---------- STRANICA ---------- */
+.page{position:absolute;inset:0;font-size:var(--fs);display:flex;flex-direction:column;
+  padding:2.1em 2.3em 1.3em}
+.single .page{overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:1.4em 1.3em 1.2em}
+.rh{display:flex;justify-content:space-between;align-items:baseline;font:600 .68em/1 var(--sans);text-transform:uppercase;
+  letter-spacing:.12em;color:var(--muted);border-bottom:1px solid var(--ink);padding-bottom:.6em;margin-bottom:1.2em;flex:none}
+.rh .rr{color:var(--accent)}
+.rf{flex:none;margin-top:auto;padding-top:.8em;font:700 .75em/1 var(--sans);color:var(--muted);display:flex;justify-content:space-between}
+.pc{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
+.single .pc{flex:none}
+
+.kick{font:800 .7em/1 var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin:0 0 .7em}
+h2{font:900 2.15em/1.04 var(--display);letter-spacing:-.015em;margin:0 0 .4em}
+h3{font:700 1.3em/1.12 var(--display);margin:0 0 .35em}
+.dek{font:italic 400 1.13em/1.38 var(--serif);color:#4a5560;margin:0 0 .9em}
+p{font:400 1em/1.48 var(--serif);margin:0 0 .62em}
+p b,li b{font-weight:600}
+.cols{column-count:2;column-gap:1.5em}
+.single .cols{column-count:1}
+.sm{font-size:.86em}
+.muted{color:var(--muted)}
+.box{background:var(--tint);border-left:.28em solid var(--green);padding:.8em 1em .5em;border-radius:.2em;margin:0 0 .9em}
+.box.pink{background:#fbecf1;border-color:var(--accent)}
+.box.gold{background:#f8f0dc;border-color:var(--gold)}
+.box h3{font-size:1.08em}
+.row{display:flex;gap:1.2em}
+.single .row{flex-direction:column}
+.single .row > *{flex:none !important;width:100%}
+.single .rh span:first-child{display:none}
+.grow{flex:1 1 auto;min-height:0}
+.single .grow{flex:none}
+.stack{display:flex;flex-direction:column;gap:1em}
+.col{flex:1 1 0;min-width:0;display:flex;flex-direction:column}
+.single .col{flex:none}
+.fill{flex:1 1 0;min-height:7em;display:flex;flex-direction:column;margin:0}
+.single .fill{flex:none}
+.ph{flex:1 1 0;min-height:0;position:relative;border-radius:.25em;overflow:hidden;background:#e7e1d7}
+.ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.single .ph{flex:none}
+.single .ph img{position:static;height:auto;max-height:75vh;object-fit:cover}
+.ph.contain{background:#2a2219}
+.ph.contain img{object-fit:contain}
+figcaption{font:400 .72em/1.35 var(--sans);color:var(--muted);margin-top:.45em;flex:none}
+.rule{border:0;border-top:1px solid var(--line);margin:.9em 0}
+ul.clean{list-style:none;padding:0;margin:0 0 .6em}
+ul.clean li{font:400 1em/1.45 var(--serif);padding:.18em 0}
+[data-goto]{cursor:pointer}
+
+/* ---------- NASLOVNICA ---------- */
+.cover{padding:1.8em 2.1em 1.4em;background:var(--paper)}
+.mast-top{display:flex;justify-content:space-between;font:700 .68em/1 var(--sans);letter-spacing:.14em;text-transform:uppercase;
+  border-top:.35em solid var(--ink);border-bottom:1px solid var(--ink);padding:.55em 0}
+.cover h1{font:900 4.15em/0.95 var(--display);letter-spacing:-.03em;margin:.22em 0 .08em;text-align:center}
+.cover h1 span{color:var(--accent)}
+.mast-sub{text-align:center;font:italic 400 1.05em/1.3 var(--serif);color:#4a5560;border-bottom:.2em double var(--ink);padding-bottom:.7em;margin-bottom:1em}
+.hero{position:relative}
+.hero .ph{border-radius:.15em}
+.hero-txt{position:absolute;left:0;right:0;bottom:0;padding:3.5em 1.3em 1.1em;color:#fff;
+  background:linear-gradient(0deg,rgba(15,12,8,.92) 0%,rgba(15,12,8,.7) 55%,rgba(15,12,8,0) 100%);border-radius:0 0 .15em .15em}
+.single .mast-top{font-size:.58em;gap:.6em}
+.single .mast-top span{white-space:nowrap}
+.single .mast-top span:nth-child(3){display:none}
+.single .cover h1{font-size:3.1em}
+.single .hero-txt{position:static;background:var(--ink);padding:1em 1.1em}
+.hero-txt .kick{color:#ffd27a}
+.hero-txt h2{color:#fff;font-size:2.35em;margin-bottom:.25em}
+.hero-txt p{color:#efe9df;margin:0;font-size:1.02em}
+.teasers{display:grid;grid-template-columns:1fr 1fr;gap:.55em 1.3em;margin-top:1em;flex:none}
+.single .teasers{grid-template-columns:1fr}
+.teasers div{display:flex;gap:.6em;align-items:baseline;font:600 .9em/1.25 var(--sans);border-top:1px solid var(--line);padding-top:.5em}
+.teasers b{font:900 1.35em/1 var(--display);color:var(--accent);min-width:1.3em}
+
+/* ---------- SADRŽAJ ---------- */
+.tocl{margin:0;padding:0;list-style:none}
+.tocl li{display:flex;align-items:baseline;gap:.5em;font:500 .95em/1.25 var(--sans);padding:.38em 0;border-bottom:1px dotted var(--line)}
+.tocl li b{font:800 1.05em/1 var(--display);color:var(--accent);min-width:1.6em}
+.tocl li:hover{color:var(--accent)}
+.sig{font:italic 400 1.1em/1.3 var(--serif);margin-top:.4em}
+
+/* ---------- STATISTIKE ---------- */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:.7em;margin:0 0 1em}
+.single .stats{grid-template-columns:1fr 1fr}
+.stat{border-top:.22em solid var(--green);padding-top:.45em}
+.stat b{display:block;font:900 1.55em/1 var(--display);color:var(--green)}
+.stat span{font:500 .72em/1.3 var(--sans);color:var(--muted)}
+
+/* ---------- VJEŽBA ---------- */
+.ex{display:flex;flex-wrap:wrap;gap:.45em .9em;font:600 1.05em/1.2 var(--sans);margin:.2em 0 .5em}
+.ex span{background:#fff;border:1px solid var(--line);padding:.25em .55em;border-radius:.3em}
+.flip{display:inline-block;transform:rotate(180deg);font:400 .78em/1.3 var(--sans);color:var(--muted)}
+
+/* ---------- HAIKU ---------- */
+.haiku{font:italic 500 1.75em/1.5 var(--display);text-align:center;padding:1.1em .8em;margin:.3em 0 1em;
+  border-top:1px solid var(--ink);border-bottom:1px solid var(--ink);position:relative}
+.haiku::before{content:"\201E";position:absolute;left:.1em;top:-.18em;font:900 3em/1 var(--display);color:var(--accent)}
+.haiku .by{display:block;font:600 .45em/1 var(--sans);font-style:normal;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-top:1em}
+
+/* ---------- PROVJERA ČINJENICA ---------- */
+table.fc{width:100%;border-collapse:collapse;font:400 .86em/1.35 var(--sans);margin:0 0 .9em}
+table.fc th{text-align:left;font-weight:800;border-bottom:2px solid var(--ink);padding:.35em .4em}
+table.fc td{border-bottom:1px solid var(--line);padding:.35em .4em;vertical-align:top}
+table.fc td.y{color:var(--green);font-weight:700}
+table.fc td.n{color:var(--accent);font-weight:700}
+.verdict{display:inline-block;background:var(--accent);color:#fff;font:800 .75em/1 var(--sans);letter-spacing:.12em;text-transform:uppercase;padding:.45em .7em;border-radius:.2em;margin-bottom:.6em}
+
+/* ---------- OGLASI ---------- */
+.ads{display:grid;grid-template-columns:1fr 1fr;gap:.7em;flex:1 1 auto;align-content:start}
+.single .ads{grid-template-columns:1fr}
+.ad{border:1px solid var(--ink);padding:.65em .8em;background:#fff}
+.ad .t{font:900 .7em/1 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:.35em}
+.ad p{font-size:.98em;margin:0 0 .3em}
+.ad.big{grid-column:1/-1;border-width:2px;background:#fffbea}
+.ad.big ol{margin:.3em 0 .2em 1.3em;padding:0;font:400 .95em/1.45 var(--serif)}
+
+/* ---------- HOROSKOP ---------- */
+.zod{display:grid;grid-template-columns:1fr 1fr;gap:.55em 1.3em;flex:1 1 auto;align-content:start}
+.single .zod{grid-template-columns:1fr}
+.zod div{border-top:1px solid var(--line);padding-top:.4em}
+.zod h4{margin:0 0 .15em;font:800 1em/1 var(--display)}
+.zod h4 small{font:500 .68em/1 var(--sans);color:var(--muted);margin-left:.4em}
+.zod p{font-size:.93em;margin:0;line-height:1.38}
+
+/* ---------- RECEPT ---------- */
+.ing{columns:2;column-gap:1.2em;font:400 1em/1.5 var(--serif);margin:0 0 .8em;padding-left:1.1em}
+.single .ing{columns:1}
+ol.steps{margin:0 0 .8em 1.2em;padding:0;font:400 1em/1.5 var(--serif)}
+ol.steps li{margin-bottom:.25em}
+.joke{background:var(--ink);color:#f3efe8;padding:1em 1.2em;border-radius:.3em;margin-top:auto}
+.joke .kick{color:#ffd27a}
+.joke p{color:#f3efe8}
+
+/* ---------- IRUNDO 24 ---------- */
+.tab{background:#fff;padding:1.3em 1.4em 1em;font-family:var(--sans)}
+.tab-top{display:flex;gap:.8em;flex:none}
+.tab-logo{position:relative;background:#e3001b;color:#fff;width:9.5em;height:8.6em;flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.tl-s{font:400 1.25em/1 var(--tab);letter-spacing:.12em}
+.tl-24{font:400 5.6em/0.9 var(--tab)}
+.tl-price{position:absolute;right:-.9em;bottom:-.7em;background:#ffd400;color:#111;border-radius:50%;width:4.4em;height:4.4em;display:flex;align-items:center;justify-content:center;text-align:center;font:400 .8em/1.05 var(--tab);transform:rotate(-12deg);border:2px solid #111}
+.tab-promo{flex:1;display:flex;flex-direction:column;gap:.5em;min-width:0}
+.tp1{background:#111;color:#fff;font:400 1.05em/1.1 var(--tab);padding:.5em .7em;letter-spacing:.02em}
+.tp2{display:flex;gap:.6em;align-items:center;background:#ffe600;padding:.35em;flex:1}
+.tp2 img{width:4.6em;height:4.2em;object-fit:cover;flex:none}
+.tp2 span{font:400 1.1em/1.05 var(--tab)}
+.tp2 small{font:600 .62em/1.2 var(--sans);display:block;margin-top:.2em}
+.tab-date{display:flex;justify-content:space-between;font:800 .65em/1 var(--sans);text-transform:uppercase;letter-spacing:.06em;border-bottom:3px solid #e3001b;padding:.9em 0 .4em;margin-bottom:.6em;flex:none}
+.tab-main{position:relative}
+.tab-main .ph{border-radius:0;background:#222}
+.tab-main .ph img{object-position:50% 15%}
+.tab-head{position:absolute;left:0;right:0;bottom:0;padding:1em .9em .8em;background:linear-gradient(0deg,rgba(0,0,0,.9),rgba(0,0,0,.55) 70%,rgba(0,0,0,0))}
+.single .tab-head{position:static;background:#111}
+.tab-head .sok{display:inline-block;background:#e3001b;color:#fff;font:400 1.1em/1 var(--tab);padding:.2em .45em;margin-bottom:.3em}
+.tab-head h2{font:400 2.75em/0.98 var(--tab);color:#fff;text-transform:uppercase;letter-spacing:.005em;margin:0 0 .25em}
+.tab-head p{color:#ffe600;font:700 .95em/1.25 var(--sans);margin:0}
+.seal{position:absolute;right:.7em;top:.7em;width:6.2em;height:6.2em;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffe9a8,#c39a3e 60%,#8a6a22);
+  display:flex;align-items:center;justify-content:center;text-align:center;font:400 .82em/1.05 var(--tab);color:#2a1c00;border:3px solid #fff;transform:rotate(10deg);box-shadow:0 4px 12px rgba(0,0,0,.4)}
+.tab-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.55em;margin-top:.6em;flex:none}
+.single .tab-grid{grid-template-columns:1fr}
+.tg{border-top:4px solid #e3001b;padding-top:.35em}
+.tg h3{font:400 1.12em/1.02 var(--tab);text-transform:uppercase;margin:0 0 .25em}
+.tg p{font:600 .74em/1.3 var(--sans);margin:0;color:#333}
+.tg.y{background:#ffe600;border-color:#111;padding:.4em .45em}
+.tab-arch{display:flex;gap:.7em;align-items:center;margin-top:.7em;background:#f2f2f2;padding:.5em .6em;flex:none}
+.tab-arch img{height:5.4em;width:auto;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.25)}
+.tab-arch img:nth-child(1){transform:rotate(-4deg)}
+.tab-arch img:nth-child(2){transform:rotate(3deg)}
+.tab-arch img:nth-child(3){transform:rotate(-2deg)}
+.tab-arch div{font:600 .72em/1.3 var(--sans)}
+.tab-arch b{font:400 1.3em/1 var(--tab);color:#e3001b;display:block;margin-bottom:.2em}
+
+/* ---------- ZADNJA ---------- */
+.backc{background:var(--green);color:#f5f1ea;padding:2.4em 2.4em 1.6em}
+.backc h2{color:#fff;font-size:2.8em}
+.backc p{color:#e8efe9}
+.backc .mail{display:block;font:800 1.45em/1.2 var(--display);color:#fff;background:rgba(0,0,0,.18);padding:.7em .9em;border-radius:.3em;margin:.4em 0 1.4em;word-break:break-all}
+.imp{border-top:1px solid rgba(255,255,255,.35);padding-top:1em;margin-top:auto;font:400 .85em/1.55 var(--sans);color:#dfe8e2}
+.imp b{color:#fff}
+.backc .bigq{font:italic 500 1.25em/1.35 var(--display);color:#fff;margin:0 0 1em}
+
+/* ---------- IRUNDO STIL (broj 5) ---------- */
+h2,h3,.zod h4{color:var(--head)}
+h2{font-weight:800;letter-spacing:-.012em;font-size:2.05em}
+h3{font-weight:700}
+.dek{font-style:normal;font-weight:400;color:#56636f}
+.rh{border-bottom-color:var(--slate);color:var(--accent);font-weight:700}
+.rh .rl{display:flex;align-items:center;gap:.5em;color:var(--slate);letter-spacing:.2em;font-weight:500}
+.rh .rl img{height:1.9em;width:auto;margin:-.6em 0}
+.rh .rr{color:var(--slate)}
+.box.pink{background:#fbefed;border-color:var(--red)}
+.box.gold{background:#f8f2e3;border-color:var(--gold)}
+.stat{border-top-color:var(--slate)}
+.stat b{color:var(--slate);font-weight:800}
+.verdict{background:var(--red)}
+table.fc td.n{color:var(--red)}
+table.fc td.y{color:var(--slate)}
+.joke{background:var(--navy)}
+.joke .kick,.hero-txt .kick{color:#e2c57c}
+.haiku{font-style:italic;font-weight:500;border-color:var(--slate);color:var(--head)}
+.haiku::before{color:var(--gold);font-weight:800}
+.ad{border-color:var(--slate);border-radius:.35em}
+.ad.big{background:#f8f2e3;border-color:var(--gold)}
+.ad .t{color:var(--accent)}
+.sig{font-style:italic}
+.tocl li b,.teasers b{font-weight:800}
+.ph{background:#e9edf1}
+.mast-logo{display:flex;align-items:center;gap:.7em;margin-bottom:1em}
+.mast-logo img{height:3.4em;width:auto}
+.mast-logo img.wm{height:1.25em}
+.mast-logo span{margin-left:auto;font:italic 400 .8em/1 var(--sans);color:#d6e0e8}
+.cover{background:var(--slate);color:#fff}
+.cover .mast-top{border-top-color:#fff;border-bottom-color:rgba(255,255,255,.5);color:#e2c57c}
+.cover h1{color:#fff;font-weight:800;font-size:3.9em;letter-spacing:-.02em}
+.cover h1 span{color:#e2c57c}
+.mast-sub{color:#dbe4eb;font-style:normal;border-bottom:1px solid rgba(255,255,255,.5)}
+.hero .ph{border-radius:.6em;border:.35em solid #fff;background:#fff}
+.hero-txt{border-radius:0 0 .5em .5em;left:.35em;right:.35em;bottom:.35em}
+.teasers div{color:#fff;border-top-color:rgba(255,255,255,.3)}
+.teasers b{color:#e2c57c}
+.single .mast-logo span{display:none}
+.single .hero-txt{margin:0}
+.backc{background:var(--slate)}
+.backc .kick{color:#e2c57c}
+.backc .mail{background:rgba(0,0,0,.2)}
+</style>
+</head>
+<body>
+
+<div id="stage"><div id="book"></div></div>
+<div id="bar">
+  <button id="bFirst" title="Naslovnica" aria-label="Naslovnica">&laquo;</button>
+  <button id="bPrev" title="Prethodna" aria-label="Prethodna">&lsaquo;</button>
+  <span id="ind"></span>
+  <button id="bNext" title="Sljedeća" aria-label="Sljedeća">&rsaquo;</button>
+  <button id="bToc" title="Sadržaj">Sadržaj</button>
+</div>
+<div id="hint">Listaj klikom na stranicu, strelicama ili prstom</div>
+<div id="toc"><div class="tbox"><h3>Sadržaj</h3><div id="tocList"></div></div></div>
+
+<main id="src">
+
+<!-- ======================= 1. NASLOVNICA ======================= -->
+<section class="page cover" data-title="Naslovnica" data-plain>
+  <div class="mast-logo"><img src="img/logo-znak-white.png" alt=""><img src="img/logo-wordmark-white.png" alt="Irundo" class="wm"><span>Interno glasilo, istina, uglavnom.</span></div>
+  <div class="mast-top"><span>Broj 5</span><span>Ponedjeljak, 16. studenoga 2026.</span><span>Cijena: jedna krafna</span></div>
+  <h1>Irundo <span>Tjednik</span></h1>
+  <div class="mast-sub">Jedine novine koje je lead centar procijenio na 23.364 € godišnje</div>
+  <figure class="hero fill" data-goto="6">
+    <div class="ph"><img src="img/djelatnica-godine.jpg" alt="Djelatnica godine" style="object-position:50% 58%"></div>
+    <div class="hero-txt">
+      <div class="kick">Ekskluzivno</div>
+      <h2>Djelatnica godine konačno ima ime</h2>
+      <p>Seka je napravila ono za što uprava mjesecima nije imala vremena. Str. 6</p>
+    </div>
+  </figure>
+  <div class="teasers">
+    <div data-goto="3"><b>3</b>Tjednik postao A lead: luksuzna vila u Poreču</div>
+    <div data-goto="5"><b>5</b>Igor dobio vježbenicu za č i ć</div>
+    <div data-goto="13"><b>13</b>Sindikat izborio mikrovalnu</div>
+    <div data-goto="12"><b>12</b>Tri godine štujemo krivog sveca?</div>
+    <div data-goto="7"><b>7</b>Nagradno pitanje: gdje je Martina?</div>
+    <div data-goto="15"><b>15</b>Novo: horoskop, recept i vic tjedna</div>
+  </div>
+</section>
+
+<!-- ======================= 2. UVODNIK ======================= -->
+<section class="page" data-title="Uvodnik i sadržaj" data-rubric="Riječ urednice">
+  <div class="kick">Uvodnik</div>
+  <h2>Tjednik se od danas lista</h2>
+  <p>Dragi svi,</p>
+  <p>dobro došli u peti broj, prvi koji se lista. Prošli put smo dobili boje i font naše stranice, a sad smo dobili i korice. Tjednik više nije PDF koji se izgubi u inboxu nego pravi katalog sa stranicama, sadržajem i, po prvi put, horoskopom. Listajte klikom na stranicu, strelicama na tipkovnici ili prstom na mobitelu.</p>
+  <p>Tjedan je bio bogat. Tjednik je postao poslovni lead, urednica je dobila nagradu (ne, nije namješteno), Sindikat je izborio mikrovalnu, a Borka se vratila u formu. Naučili smo što znači <i>mansardni</i> i počeli sumnjati u identitet sveca iz dubrovačkog skladišta.</p>
+  <p>Hvala svima koji su slali vijesti i fotke. Bez vas bi ovo bio bilten o baterijama za brave.</p>
+  <div class="sig">Lp, Matea</div>
+  <hr class="rule">
+  <div class="kick">U ovom broju</div>
+  <ul class="tocl">
+    <li data-goto="3"><b>3</b>Tjednik u lead centru</li>
+    <li data-goto="4"><b>4</b>Iz ureda: vrata i fotoshooting</li>
+    <li data-goto="5"><b>5</b>Igorov rođendan</li>
+    <li data-goto="6"><b>6</b>Djelatnica godine</li>
+    <li data-goto="7"><b>7</b>Rođendan urednice i nagradno pitanje</li>
+    <li data-goto="8"><b>8</b>Kultura: haiku tjedna</li>
+    <li data-goto="9"><b>9</b>Rječnik i stolci</li>
+    <li data-goto="10"><b>10</b>Zdravlje i obitelj</li>
+    <li data-goto="11"><b>11</b>Tehnologija: tepih za miševe</li>
+    <li data-goto="12"><b>12</b>Provjera činjenica</li>
+    <li data-goto="13"><b>13</b>Sindikat</li>
+    <li data-goto="14"><b>14</b>Mali oglasi</li>
+    <li data-goto="15"><b>15</b>Horoskop</li>
+    <li data-goto="16"><b>16</b>Recept i vic tjedna</li>
+    <li data-goto="17"><b>17</b>Irundo 24</li>
+  </ul>
+</section>
+
+<!-- ======================= 3. LEAD CENTAR ======================= -->
+<section class="page" data-title="Tjednik u lead centru" data-rubric="Poslovne vijesti">
+  <div class="kick">Vijest tjedna</div>
+  <h2>Tjednik u lead centru: kategorizirana luksuzna vila u Poreču</h2>
+  <p class="dek">Naš sustav za leadove pročitao je prošli broj i zaključio da je riječ o ozbiljnom vlasniku s ozbiljnom nekretninom.</p>
+  <div class="stats">
+    <div class="stat"><b>23.364 €</b><span>procijenjena godišnja zarada Tjednika</span></div>
+    <div class="stat"><b>60/40</b><span>predloženi model podjele s našim facilityjem</span></div>
+    <div class="stat"><b>A</b><span>kategorija leada (B na kartici, ali tko broji)</span></div>
+  </div>
+  <figure style="margin:0 0 .9em">
+    <div class="ph" style="aspect-ratio:1584/643;flex:none;background:#fff;border:1px solid var(--line)"><img src="img/lead-centar.jpg" alt="Tjednik u lead centru" style="object-fit:contain"></div>
+    <figcaption>Dokaz iz lead centra. Broj telefona zamućen jer i vila ima pravo na privatnost.</figcaption>
+  </figure>
+  <div class="cols">
+    <p>Prošlotjedni Tjednik, poslan s adrese urednice, završio je u lead centru kao vlasnik nekretnine. Sustav ga je opisao kao kategoriziranu luksuznu vilu u Poreču, predložio podjelu 60/40 i preporučio da se nazove što prije.</p>
+    <p>Nedostaju samo točna lokacija i broj soba. Uredništvo odgovara: lokacija je Petrinjska 38, 1. kat, a soba je jedna, konferencijska, s novim stolom (vidi str. 4). Mi bismo rekli: najbolji lead ove sezone.</p>
+  </div>
+  <div class="box pink" style="margin-top:auto">
+    <div class="kick" style="margin-bottom:.4em">Napomena sustava, doslovno</div>
+    <p style="font:italic 500 1.25em/1.35 var(--display);margin:0 0 .4em">"Napomena: e-mail je @irundo.com, vjerojatno interni test."</p>
+    <p class="sm muted">Uredništvo se ograđuje. Tjednik nije test, Tjednik je stil života.</p>
+  </div>
+</section>
+
+<!-- ======================= 4. IZ UREDA ======================= -->
+<section class="page" data-title="Iz ureda: vrata i fotoshooting" data-rubric="Iz ureda">
+  <div class="stack grow">
+    <div class="col">
+      <div class="kick">Petrinjska 38</div>
+      <h3>Stol ušao, vrata ispala. Lamija i Paula: 1, vrata: 0</h3>
+      <p class="sm">Nakon useljenja novog stola za konferencijsku sobu, ulazna vrata ureda zaključila su da više ne surađuju. Lamija je uzela čekić, Paula je pomagala iz skrivenog položaja (pokušajte je naći na slici). Vrata rade, stol je unutra, a kako će ikad izaći, nitko ne zna.</p>
+      <figure class="fill">
+        <div class="ph"><img src="img/vrata.jpg" alt="Popravak vrata" style="object-position:50% 55%"></div>
+        <figcaption>Lamija na terenu. Paula: negdje.</figcaption>
+      </figure>
+    </div>
+    <div class="col">
+      <div class="kick">PR</div>
+      <h3>Ured je imao svoj modni tjedan</h3>
+      <p class="sm">Fotograf u žutom, stativ, kalateja u prvom planu i tablica na ekranu, da se vidi da se radi. Fotoshooting je bio za PR, a gotove fotke još ne postoje. Dok ne stignu, ekskluzivno donosimo making-of. Uredništvo obećaje: na finalnim fotkama nitko neće izgledati kao da radi u Excelu.</p>
+      <figure class="fill">
+        <div class="ph"><img src="img/fotoshooting.jpg" alt="Fotoshooting" style="object-position:50% 35%"></div>
+        <figcaption>Iza kulisa. Fotke uskoro, obećao je netko.</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= 5. IGOROV ROĐENDAN ======================= -->
+<section class="page" data-title="Igorov rođendan" data-rubric="Društvena kronika">
+  <div class="kick">6. studenoga</div>
+  <h2>Igor proslavio rođendan i dobio domaću zadaću</h2>
+  <div class="row fill" style="min-height:12em">
+    <figure class="fill"><div class="ph"><img src="img/igor-rodjendan-stol.jpg" alt="Švedski stol" style="object-position:50% 60%"></div></figure>
+    <figure class="fill"><div class="ph"><img src="img/igor-rodjendan-poklon.jpg" alt="Igor otvara poklon" style="object-position:50% 52%"></div></figure>
+  </div>
+  <p style="margin-top:.8em">Kolektiv je pripremio švedski stol koji je nestao brže od slobodnih termina za čišćenje u kolovozu. Slavljenik je dobio poklon bon i <b>vježbenicu za vježbanje slova č i ć</b>. Izvori bliski upravi tvrde da je vježbenica otvorena još na licu mjesta (dokaz desno).</p>
+  <div class="box gold" style="margin-bottom:0">
+    <h3>Vježba za slavljenika: dopuni č ili ć</h3>
+    <div class="ex"><span>ku_a</span><span>ra_un</span><span>sre_a</span><span>_estitka</span><span>zada_a</span><span>kraf_e?</span></div>
+    <span class="flip">Rješenja: kuća, račun, sreća, čestitka, zadaća. Krafne nemaju ni č ni ć, samo aferu.</span>
+  </div>
+</section>
+
+<!-- ======================= 6. DJELATNICA GODINE ======================= -->
+<section class="page" data-title="Djelatnica godine" data-rubric="Nagrade">
+  <div class="row grow">
+    <figure class="fill" style="flex:0 0 44%">
+      <div class="ph contain" style="background:transparent"><img src="img/djelatnica-godine.jpg" alt="Djelatnica godine 2026" style="object-position:50% 0"></div>
+    </figure>
+    <div class="col">
+      <div class="kick">Djelatnica godine 2026</div>
+      <h2 style="font-size:1.9em">Hvala, Seka!</h2>
+      <p class="dek">Šalter 1 je s razlogom prvi.</p>
+      <p>Nagrada za najbolju zaposlenicu mjesecima je stajala na popisu stvari koje je uprava "baš htjela" napraviti (vidi arhivu Irundo 24, str. 17). Seka je odlučila da je čekanja dosta i stvar uzela u svoje ruke.</p>
+      <p>Nagrada <b>Djelatnica godine 2026</b> otišla je urednici ovog lista, uz kristalni trofej, medalju i obrazloženje koje stane na jednu traku: šalter 1 je s razlogom prvi.</p>
+      <div class="box pink">
+        <p><i>"Hvala Seki na priznanju, trofeju i medalji koju ću od danas nositi na svim sastancima, uključujući one online. Nagradu posvećujem svima koji su ikad čekali na šalteru 1."</i></p>
+        <p class="sm muted" style="margin:0">Matea, Djelatnica godine</p>
+      </div>
+      <div class="box gold">
+        <h3>Iz obrazloženja žirija</h3>
+        <ul class="clean sm" style="margin:0">
+          <li>prva na šalteru, prva na mailu, prva u tablici</li>
+          <li>zna svaku šifru, osim one za vlastiti odmor</li>
+          <li>urednica jedinih novina koje vrijede 23.364 € godišnje</li>
+        </ul>
+      </div>
+      <p class="sm"><b>Ostali nominirani:</b> nitko. Nominacije nije imao tko organizirati (vidi team building, str. 14).</p>
+      <p class="sm muted">Uredništvo napominje da nije riječ o sukobu interesa: nagradu je dodijelio neovisni odbor od jedne osobe.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= 7. ROĐENDAN UREDNICE + KVIZ ======================= -->
+<section class="page" data-title="Rođendan urednice i nagradno pitanje" data-rubric="Rođendani">
+  <div class="kick">25. kolovoza</div>
+  <h2>Prošao je, ali nije zaboravljen</h2>
+  <p class="dek">Urednica je slavila rođendan 25.8., kad smo bili svi zajedno. Kolegice su inzistirale da to nije razlog da se ne spomene u Tjedniku, pa evo.</p>
+  <figure class="fill">
+    <div class="ph"><img src="img/matea-rodjendan.jpg" alt="Rođendan" style="object-position:50% 42%"></div>
+    <figcaption>Rođendanska ekipa u punom sastavu. Gotovo.</figcaption>
+  </figure>
+  <div class="row" style="margin-top:.9em;align-items:stretch">
+    <div class="box pink col" style="margin:0">
+      <div class="kick">Nagradno pitanje</div>
+      <h3>Gdje je Martina? Zašto nije na slici?</h3>
+      <p style="margin:.2em 0"><b>A)</b> u shoppingu<br><b>B)</b> u online shoppingu</p>
+      <p class="sm muted" style="margin:0">Odgovore šaljite uredništvu. Rješenje u idućem broju.</p>
+    </div>
+    <figure class="col" style="flex:0 0 42%">
+      <div class="ph" style="aspect-ratio:1400/732;flex:none"><img src="img/martina-ime.jpg" alt="Skriveno značenje imena Martina"></div>
+      <figcaption>Skriveno značenje imena Martina. Nijedna riječ ne objašnjava gdje je bila.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ======================= 8. KULTURA: HAIKU ======================= -->
+<section class="page" data-title="Kultura: haiku tjedna" data-rubric="Kultura">
+  <div class="kick">Haiku tjedna</div>
+  <h2>Martina je slomila Damira Ivića</h2>
+  <p class="dek">Vlasnik nekretnine Damir Ivić odlučio je i sljedeću godinu raditi s nama. Zasluga ide Martini, koja ga je, prema vlastitim riječima, uspjela "slomiti". Pregovore je pretočila u stihove, a uredništvo ih je zapisalo.</p>
+
+  <!-- ===== HAIKU ===== -->
+  <div class="haiku">
+    Damir kaže ne.<br>
+    Martina toči kavu.<br>
+    Potpisa opet.
+    <span class="by">Martina, o Damiru Iviću</span>
+  </div>
+  <!-- ===== KRAJ HAIKUA ===== -->
+
+  <div class="row">
+    <div class="col">
+      <h3>Kritika</h3>
+      <p class="sm">Književni kritičar Tjednika ocjenjuje: najsnažniji stihovi u povijesti Irunda nakon klauzule o produljenju ugovora. Pet, sedam, pet slogova i jedan potpisan vlasnik. Japanski majstori su za manje dobivali spomenike.</p>
+    </div>
+    <div class="col">
+      <div class="box" style="margin:0">
+        <h3>Napiši i ti haiku</h3>
+        <p class="sm">Tri stiha, 5-7-5 slogova, tema slobodna (preporuka: gost, šifra, baterija). Najbolje objavljujemo u idućem broju.</p>
+        <p class="sm muted">Primjer uredništva:<br><i>Gost zove u dva.<br>Baterija na bravi.<br>Opet je prazna.</i></p>
+      </div>
+    </div>
+  </div>
+  <div style="margin-top:auto">
+    <div class="kick">Rezultat pregovora</div>
+    <div class="stats" style="margin:0">
+      <div class="stat"><b>+1</b><span>godina suradnje s Damirom Ivićem</span></div>
+      <div class="stat"><b>1</b><span>slomljeni vlasnik (dobrovoljno)</span></div>
+      <div class="stat"><b>17</b><span>slogova koji su to ovjekovječili</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= 9. RJEČNIK + STOLCI ======================= -->
+<section class="page" data-title="Rječnik i stolci" data-rubric="Rječnik i interijeri">
+  <div class="kick">Rječnik Tjednika</div>
+  <h3 style="font-size:1.55em">mansardni <span style="font:italic 400 .6em var(--serif);color:var(--muted)">pridjev</span></h3>
+  <p class="sm">Na jednom oglasu pojavio se <i>mansardni stan</i> i ured je stao. Što to zapravo znači? Za one koji žele znati više:</p>
+  <ul class="clean sm">
+    <li><b>Značenje:</b> koji pripada mansardi ili se nalazi na mansardi (mansardni stan, mansardni krov).</li>
+    <li><b>Mansarda:</b> stambeni prostor u potkrovlju, ispod lomljenog krova koji sa svake strane ima dva nagiba, donji vrlo strm, gornji blaži.</li>
+    <li><b>Podrijetlo:</b> po francuskom arhitektu Françoisu Mansartu iz 17. stoljeća, koji je takav krov popularizirao.</li>
+    <li><b>U praksi:</b> svaki stan u potkrovlju. U oglasima: "romantično", u recenzijama: "udario sam glavu".</li>
+  </ul>
+  <hr class="rule">
+  <div class="kick">Interijeri</div>
+  <h3>Vanjski stolci našli novi dom</h3>
+  <p class="sm">Petra Turčin javlja: vanjski stolci, svima nama dobro poznati, smjestili su se u novom domu i dobro su zbrinuti. Dokaz je priložen. Zamazane zidove i pločice molimo ignorirati. Pepeljara potvrđuje da su navike ostale iste.</p>
+  <figure class="fill">
+    <div class="ph"><img src="img/stolci.jpg" alt="Vanjski stolci" style="object-position:50% 60%"></div>
+    <figcaption>Stolci u novom domu, pogled na Sljeme uključen. Foto: Petra Turčin</figcaption>
+  </figure>
+</section>
+
+<!-- ======================= 10. ZDRAVLJE I OBITELJ ======================= -->
+<section class="page" data-title="Zdravlje i obitelj" data-rubric="Zdravlje i obitelj">
+  <div class="kick">Zdravlje</div>
+  <h2 style="font-size:1.85em">Borka se oporavila i sve vas pozdravlja</h2>
+  <p class="sm">Naša pasistentica Borka vratila se u punu formu. Prema riječima same pacijentice (prevedeno s psećeg), oporavak je tekao uz deku, puno spavanja i minimalno sastanaka. Preporučuje istu terapiju cijelom kolektivu.</p>
+  <figure class="fill">
+    <div class="ph"><img src="img/borka.jpg" alt="Borka" style="object-position:40% 50%"></div>
+    <figcaption>Borka na bolovanju koje upravo završava. Sutra opet na dužnosti.</figcaption>
+  </figure>
+  <hr class="rule">
+  <div class="row" style="flex:none">
+    <figure style="flex:0 0 36%;margin:0">
+      <div class="ph" style="aspect-ratio:4/4.3;flex:none"><img src="img/paula-sin.jpg" alt="Paula i sin" style="object-position:40% 55%"></div>
+    </figure>
+    <div class="col">
+      <div class="kick">Obitelj</div>
+      <h3>Paula i njen majmunoliki sin</h3>
+      <p class="sm">Paula je u ured dovela sina. Mali je miran, ne traži ništa, sluša na sastancima i ima izraz lica cijelog HC tima u kolovozu. Sličnost s majkom, kažu, vidi se u očima. Ponosna mama ne komentira, samo se smiješi.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= 11. TEPIH ======================= -->
+<section class="page" data-title="Tehnologija: tepih za miševe" data-rubric="Tehnologija">
+  <div class="kick">Novo u uredu</div>
+  <h2>Stigla zima, miševi dobili tepih</h2>
+  <p class="dek">Lamija javlja: stigla su hladnija vremena pa i miševi moraju čuvati jajnike. Zato je iz dalekog skladišta u Kini uvezen tepih.</p>
+  <figure class="fill">
+    <div class="ph"><img src="img/tepih.jpg" alt="Tepih za miša" style="object-position:50% 50%"></div>
+    <figcaption>Miš na toplom. Foto: Lamija</figcaption>
+  </figure>
+  <div class="row" style="margin-top:.9em">
+    <div class="box col" style="margin:0">
+      <h3>Specifikacije</h3>
+      <ul class="clean sm" style="margin:0">
+        <li><b>Stil:</b> perzijski, s resama</li>
+        <li><b>Porijeklo:</b> daleko skladište, Kina</li>
+        <li><b>Kapacitet:</b> jedan miš</li>
+        <li><b>Grijanje:</b> pasivno, ali s puno ljubavi</li>
+      </ul>
+    </div>
+    <div class="col">
+      <p class="sm">Ured je time dobio prvi tepih po mjeri zaposlenika. Sindikat je najavio da će pitanje tepiha za ostale zaposlenike staviti na dnevni red, odmah nakon mikrovalne (str. 13).</p>
+      <p class="sm muted">Jamstvo vrijedi dok miš ne pobjegne s kabelom.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= 12. PROVJERA ČINJENICA ======================= -->
+<section class="page" data-title="Provjera činjenica: sveti Ante?" data-rubric="Provjera činjenica">
+  <div class="kick">Prije točno tri godine</div>
+  <h2 style="font-size:1.85em">Tri godine štujemo krivog sveca?</h2>
+  <div class="row grow">
+    <figure class="fill" style="flex:0 0 38%">
+      <div class="ph"><img src="img/sveti-ante.jpg" alt="Kip iz skladišta" style="object-position:50% 40%"></div>
+      <figcaption>Pronađen 2023. među kutijama prve pomoći, Dubrovnik.</figcaption>
+    </figure>
+    <div class="col">
+      <p class="sm">Prilikom iseljavanja skladišta u Dubrovniku 2023. Martina, Tea i Matea pronašle su kip među kutijama prve pomoći. Prozvale su ga sveti Ante i otada čuva prvu pomoć. Ali uredništvo je pogledalo pažljivije.</p>
+      <table class="fc">
+        <tr><th>Obilježje</th><th>Ante</th><th>Josip</th><th>Naš kip</th></tr>
+        <tr><td>Smeđi franjevački habit s užetom</td><td>da</td><td>ne</td><td class="n">ne</td></tr>
+        <tr><td>Tonzura (obrijano tjeme)</td><td>da</td><td>ne</td><td class="n">ne</td></tr>
+        <tr><td>Brada</td><td>rijetko</td><td>da</td><td class="y">da</td></tr>
+        <tr><td>Zelena tunika i smeđi plašt</td><td>ne</td><td>često</td><td class="y">da</td></tr>
+        <tr><td>Ljiljan</td><td>da</td><td>da</td><td>da</td></tr>
+        <tr><td>Dijete Isus</td><td>da</td><td>da</td><td>da</td></tr>
+      </table>
+      <div class="verdict">Presuda: vjerojatno sveti Josip</div>
+      <p class="sm">Ljiljan i dijete imaju obojica, pa tu nema pomoći. Ali brada, zeleno-smeđa odjeća i izostanak habita govore u prilog Josipu.</p>
+      <div class="box pink" style="margin:0">
+        <h3>Glasajte</h3>
+        <p class="sm" style="margin:0"><b>A)</b> Ante, tri godine se ne mijenjaju<br><b>B)</b> Josip, činjenice su činjenice<br><b>C)</b> Svejedno, kutije prve pomoći su sigurne</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= 13. SINDIKAT ======================= -->
+<section class="page" data-title="Sindikat" data-rubric="Radnička prava">
+  <div class="kick">Sindikat radnika Irundo</div>
+  <h2>Prvih 11 članova, prvi zahtjev ispunjen: mikrovalna</h2>
+  <figure class="fill" style="min-height:9em">
+    <div class="ph contain" style="background:#fff"><img src="img/sindikat.jpg" alt="Logo Sindikata radnika Irundo"></div>
+  </figure>
+  <p style="margin-top:.8em">U prošlom broju pitali smo: mjesec dana na Petrinjskoj, nula mikrovalnih, tko odgovara? Najavili smo i osnivanje sindikata. Dva tjedna kasnije Sindikat Irunda ima prvih 11 članova i prvu pobjedu: ured je dobio mikrovalnu. Topli ručak više nije privilegija, nego pravo.</p>
+  <p>Ipak, postavlja se pitanje koje nitko ne želi postaviti naglas: <b>je li to korak ka boljem sutra ili zataškavanje afere KRAFNE?</b></p>
+  <div class="row" style="flex:none">
+    <div class="box col" style="margin:0">
+      <h3>Za bolje sutra</h3>
+      <ul class="clean sm" style="margin:0">
+        <li>11 članova u rekordnom roku</li>
+        <li>Topli ručak za sve</li>
+        <li>Prvi zahtjev, prva pobjeda</li>
+      </ul>
+    </div>
+    <div class="box pink col" style="margin:0">
+      <h3>Za zataškavanje</h3>
+      <ul class="clean sm" style="margin:0">
+        <li>Krafne se ne griju u mikrovalnoj</li>
+        <li>Afera nikad službeno zatvorena</li>
+        <li>Mikrovalna stigla podozrivo brzo</li>
+      </ul>
+    </div>
+  </div>
+  <p class="sm muted" style="margin-top:.8em">12. član se traži. Pristupnica: javiti se bilo kojem od postojećih 11, koji su, iz sigurnosnih razloga, anonimni.</p>
+</section>
+
+<!-- ======================= 14. MALI OGLASI ======================= -->
+<section class="page" data-title="Mali oglasi" data-rubric="Mali oglasi">
+  <div class="kick">Oglasnik</div>
+  <h2>Mali oglasi</h2>
+  <div class="ads">
+    <div class="ad big">
+      <div class="t">Hitno traži se</div>
+      <h3>Organizator team buildinga</h3>
+      <p>Katarina je upozorila na potpunu odsutnost organizacije team buildinga. Nitko ne želi preuzeti odgovornost. Beba je spremna pomoći s prijedlozima:</p>
+      <ol>
+        <li>spa</li>
+        <li>wellness i spa</li>
+        <li>odmaranje</li>
+        <li>opuštanje</li>
+        <li>potpuno odsustvo stresnih situacija</li>
+      </ol>
+      <p class="sm muted">Prijave primaju svi osim Katarine, koja je svoje već napravila.</p>
+    </div>
+    <div class="ad"><div class="t">Traži se</div><p><b>Martina.</b> Zadnji put viđena u shoppingu, ili online shoppingu. Str. 7.</p></div>
+    <div class="ad"><div class="t">Izdaje se</div><p><b>Mansardni stan.</b> Ako ne znate što je mansarda, str. 9. Visoki stanari na vlastitu odgovornost.</p></div>
+    <div class="ad"><div class="t">Traži se</div><p><b>Slovo ć.</b> Nagrada: jedna krafna. Javiti se Igoru.</p></div>
+    <div class="ad"><div class="t">Izgubljeno</div><p><b>Broj soba luksuzne vile u Poreču.</b> Pronalazača moli lead centar. Str. 3.</p></div>
+    <div class="ad"><div class="t">Posao</div><p><b>Postani Hospitality Coordinator!</b> Sezona zove. Uvjet: pozitivan stav prema baterijama.</p></div>
+    <div class="ad"><div class="t">Usluge</div><p><b>Popravak vrata.</b> Brzo, glasno, s čekićem. Kontakt: Lamija. Paula po dogovoru, nevidljiva.</p></div>
+    <div class="ad"><div class="t">Upoznavanje</div><p><b>Svetac, 3 godine u skladištu,</b> traži ozbiljnu vezu i svoje pravo ime. Ante ili Josip, str. 12.</p></div>
+    <div class="ad"><div class="t">Učlanjenje</div><p><b>Sindikat traži 12. člana.</b> Mikrovalna već osigurana. Pristupnica na str. 13.</p></div>
+  </div>
+</section>
+
+<!-- ======================= 15. HOROSKOP ======================= -->
+<section class="page" data-title="Horoskop" data-rubric="Horoskop">
+  <div class="kick">Zvijezde ovog tjedna</div>
+  <h2>Horoskop</h2>
+  <div class="box pink" style="flex:none">
+    <h3>Hitno: trebaju nam vaši podaci</h3>
+    <p class="sm" style="margin:0">Od idućeg broja izlazi personalizirani horoskop. Odmah pošaljite <b>datum, vrijeme i mjesto rođenja</b> na <b>matea@irundo.com</b>. Bez toga zvijezde ne preuzimaju odgovornost, kao ni nitko za team building.</p>
+  </div>
+  <div class="zod">
+    <div><h4>Ovan<small>21.3.-20.4.</small></h4><p>Energija vam je visoka, a vrata u uredu uska. Izmjerite prije nego što nešto unesete.</p></div>
+    <div><h4>Bik<small>21.4.-20.5.</small></h4><p>Venera vam preporučuje švedski stol. Uzmite treći tanjur, nitko ne broji.</p></div>
+    <div><h4>Blizanci<small>21.5.-21.6.</small></h4><p>Pred vama su dvije opcije, A i B. Kao i uvijek, točan odgovor je online shopping.</p></div>
+    <div><h4>Rak<small>22.6.-22.7.</small></h4><p>Povucite se u svoj oklop. Ili na balkon, stolci su ionako tamo.</p></div>
+    <div><h4>Lav<small>23.7.-22.8.</small></h4><p>Zaslužili ste priznanje. Ako ga nitko ne dodijeli, javite se Seki.</p></div>
+    <div><h4>Djevica<small>23.8.-22.9.</small></h4><p>Djelatnica godine je u vašem znaku. Zvijezde samo potvrđuju ono što je Seka već znala.</p></div>
+    <div><h4>Vaga<small>23.9.-22.10.</small></h4><p>Između spa i wellnessa izabrat ćete wellness i spa. Mudar izbor.</p></div>
+    <div><h4>Škorpion<small>23.10.-21.11.</small></h4><p>Vaš je mjesec. Sretan rođendan svim Škorpionima. Ovaj tjedan vježbate č i ć, zvijezde vjeruju u vas.</p></div>
+    <div><h4>Strijelac<small>22.11.-21.12.</small></h4><p>Put vas zove. Možda Tirana, možda samo skladište. Ponesite kutiju prve pomoći.</p></div>
+    <div><h4>Jarac<small>22.12.-19.1.</small></h4><p>Ambicija raste. Pazite da vas lead centar ne kategorizira kao luksuznu vilu.</p></div>
+    <div><h4>Vodenjak<small>20.1.-18.2.</small></h4><p>Pridružite se nečemu većem od sebe. Sindikat traži 12. člana.</p></div>
+    <div><h4>Ribe<small>19.2.-20.3.</small></h4><p>Kreativnost na vrhuncu. Napišite haiku, 5-7-5. Ako zapne, pitajte Martinu.</p></div>
+  </div>
+  <div class="joke" style="margin-top:.9em">
+    <div class="kick">Planetarno upozorenje</div>
+    <p style="margin:0">Merkur je retrogradan do kraja sezone. Svaku poruku gostu pošaljite dvaput, šifre provjerite triput, a baterije mijenjajte preventivno.</p>
+  </div>
+</section>
+
+<!-- ======================= 16. RECEPT I VIC ======================= -->
+<section class="page" data-title="Recept i vic tjedna" data-rubric="Recept i vic">
+  <div class="kick">Recept tjedna</div>
+  <h2 style="font-size:1.9em">Krafne bez afere</h2>
+  <p class="dek">Za 15-ak krafni za koje nitko neće morati odgovarati.</p>
+  <p class="sm">Zašto baš krafne? Tko prati Irundo 24, zna. Tko ne prati, neka okrene na str. 17. Ovaj recept je naša ponuda za mir: ako svatko ispeče svoje, afera se gasi sama od sebe.</p>
+  <ul class="ing">
+    <li>500 g glatkog brašna</li>
+    <li>1 kocka svježeg kvasca (42 g)</li>
+    <li>250 ml mlakog mlijeka</li>
+    <li>50 g šećera</li>
+    <li>2 žumanjka</li>
+    <li>50 g otopljenog maslaca</li>
+    <li>prstohvat soli</li>
+    <li>korica limuna i žlica ruma</li>
+    <li>ulje za prženje</li>
+    <li>pekmez i šećer u prahu</li>
+  </ul>
+  <ol class="steps">
+    <li>Kvasac razmutite u mlijeku sa žličicom šećera i ostavite 10 minuta da se zapjeni.</li>
+    <li>Zamijesite sve sastojke u mekano, glatko tijesto. Pokrijte i ostavite sat vremena na toplom da se udvostruči.</li>
+    <li>Razvaljajte na debljinu oko 1,5 cm i režite čašom. Ostavite još 30 minuta pod krpom.</li>
+    <li>Pržite u ulju na oko 170 °C, prvo poklopljeno, pa otklopljeno, 2 do 3 minute sa svake strane, dok se ne pojavi svijetli pojas.</li>
+    <li>Ocijedite, napunite pekmezom i pospite šećerom u prahu.</li>
+  </ol>
+  <div class="box gold">
+    <h3>Napomena Sindikata</h3>
+    <p class="sm">Krafne se ne griju u novoj mikrovalnoj. Ako nestanu iz kuhinje, istraga se ne pokreće, a odgovornost ne preuzima nitko. Ocjena kolektiva: pet krafni od pet, nula afera od pet.</p>
+  </div>
+  <div class="joke">
+    <div class="kick">Vic tjedna</div>
+    <p>Koliko je ljudi iz Irunda potrebno da se promijeni baterija na bravi?</p>
+    <p style="margin:0">Troje. Jedan otvori task, drugi ga premjesti u plan za šifre i baterije, a treći, gost, nazove u dva ujutro da javi da je baterija prazna.</p>
+  </div>
+</section>
+
+<!-- ======================= 17. IRUNDO 24 ======================= -->
+<section class="page tab" data-title="Irundo 24" data-plain>
+  <div class="tab-top">
+    <div class="tab-logo"><span class="tl-s">IRUNDO</span><span class="tl-24">24</span><span class="tl-price">1<br>KRAFNA</span></div>
+    <div class="tab-promo">
+      <div class="tp1">POSTANI HOSPITALITY COORDINATOR! SEZONA ZOVE!</div>
+      <div class="tp2"><img src="img/borka.jpg" alt=""><span>BORKA SE VRATILA!<small>Pasistentica opet na dužnosti. Str. 10</small></span></div>
+    </div>
+  </div>
+  <div class="tab-date"><span>Broj 5, godina I</span><span>Ponedjeljak, 16. studenoga 2026.</span></div>
+  <div class="tab-main fill">
+    <div class="ph"><img src="img/igor-crop.jpg" alt="Igor s vježbenicom"></div>
+    <div class="seal">DJELATNICA<br>GODINE<br>DODIJELJENA</div>
+    <div class="tab-head">
+      <span class="sok">ŠOK!</span>
+      <h2>Igor dobio vježbenicu za č i ć</h2>
+      <p>Kolege: "Ovo je intervencija." Slavljenik: "Hvala, sad cu vjezbati!"</p>
+    </div>
+  </div>
+  <div class="tab-grid">
+    <div class="tg y" data-goto="6"><h3>Seka odradila posao uprave</h3><p>Nagrada Djelatnica godine konačno dodijeljena. Str. 6</p></div>
+    <div class="tg" data-goto="13"><h3>Mikrovalna da, krafne ne?</h3><p>Sindikat slavi, afera i dalje otvorena. Str. 13</p></div>
+    <div class="tg" data-goto="3"><h3>Alarm u lead centru</h3><p>Tjednik procijenjen na 23.364 € godišnje. Str. 3</p></div>
+  </div>
+  <div class="tab-arch">
+    <img src="img/arhiva-24sata.jpg" alt="Arhiva"><img src="img/arhiva-index-1.jpg" alt="Arhiva"><img src="img/arhiva-index-2.jpg" alt="Arhiva">
+    <div><b>IZ ARHIVE: AFERA KRAFNE</b>Popis Igorovih grešaka, ručni rad uredništva. Saga se nastavlja.</div>
+  </div>
+</section>
+
+<!-- ======================= 18. ZADNJA STRANICA ======================= -->
+<section class="page backc" data-title="Impressum" data-plain>
+  <div class="mast-logo" style="margin-bottom:2.2em"><img src="img/logo-znak-white.png" alt=""><img src="img/logo-wordmark-white.png" alt="Irundo" class="wm"></div>
+  <div class="kick">Do idućeg ponedjeljka</div>
+  <h2>Hvala što čitate</h2>
+  <p class="bigq">Ovaj tjedan opet izlazimo na vrijeme. Lamija, žao nam je, bonova nema.</p>
+  <p>Vijesti, fotografije, haikue, odgovore na nagradna pitanja i podatke za horoskop šaljite na:</p>
+  <span class="mail">matea@irundo.com</span>
+  <p>Sljedeći broj izlazi u ponedjeljak, 23. studenoga 2026. Rješenja nagradnih pitanja (Martina, sveti Ante ili Josip) objavljujemo tada.</p>
+  <div class="imp">
+    <b>Irundo Tjednik</b>, broj 5, 16. studenoga 2026.<br>
+    Interno glasilo kolektiva Irundo, Petrinjska 38, 1. kat, Zagreb<br>
+    <b>Glavna i odgovorna urednica:</b> Matea Kovačević<br>
+    <b>Dopisnici ovog broja:</b> Petra Turčin, Lamija, Paula, Katarina, Martina, Seka, Beba<br>
+    <b>Fotografije:</b> kolektiv, osim ako nije drukčije navedeno<br>
+    Sve sličnosti sa stvarnim osobama su namjerne i od milja.<br>
+    Irundo d.o.o. · interna objava, nije za dijeljenje izvan tima
+  </div>
+</section>
+
+</main>
+
+<script>
+(function(){
+  const src = document.getElementById('src');
+  const pages = Array.from(src.querySelectorAll('.page'));
+  const P = pages.length;
+  const book = document.getElementById('book');
+  const root = document.documentElement;
+  const ind = document.getElementById('ind');
+  const ISSUE = 'Broj 5 · 16.11.2026.';
+  let mode = null, leaves = [], pos = 0, L = 0, pw = 0, ph = 0;
+
+  // zaglavlje i podnožje
+  pages.forEach((pg, i) => {
+    if (pg.hasAttribute('data-plain')) return;
+    const n = i + 1, rub = pg.dataset.rubric || '';
+    const inner = document.createElement('div');
+    inner.className = 'pc';
+    while (pg.firstChild) inner.appendChild(pg.firstChild);
+    pg.innerHTML = '<div class="rh"><span class="rl"><img src="img/logo-znak-slate.png" alt="">Irundo</span><span class="rr">' + rub + '</span><span>' + ISSUE + '</span></div>';
+    pg.appendChild(inner);
+    const f = document.createElement('div');
+    f.className = 'rf';
+    f.innerHTML = n % 2 ? '<span></span><span>' + n + '</span>' : '<span>' + n + '</span><span></span>';
+    pg.appendChild(f);
+  });
+
+  // sadržaj (overlay)
+  const tl = document.getElementById('tocList');
+  pages.forEach((pg, i) => {
+    const a = document.createElement('a');
+    a.innerHTML = '<span>' + (pg.dataset.title || ('Stranica ' + (i + 1))) + '</span><b>' + (i + 1) + '</b>';
+    a.onclick = () => { closeToc(); goTo(i + 1); };
+    tl.appendChild(a);
+  });
+
+  function dims(){
+    const vw = window.innerWidth, vh = window.innerHeight - 64;
+    const pwB = Math.min((vw - 70) / 2, (vh - 36) / 1.414);
+    const bookMode = vw >= 900 && pwB >= 340;
+    if (bookMode){ pw = Math.floor(pwB); ph = Math.floor(pw * 1.414); }
+    else { pw = Math.floor(Math.min(vw - 16, 620)); ph = Math.floor(vh - 14); }
+    root.style.setProperty('--pw', pw + 'px');
+    root.style.setProperty('--ph', ph + 'px');
+    root.style.setProperty('--fs', (bookMode ? pw / 44 : Math.max(13.5, Math.min(15.5, pw / 26))) + 'px');
+    return bookMode ? 'book' : 'single';
+  }
+
+  function build(newMode){
+    const curPage = currentPage();
+    mode = newMode;
+    document.body.classList.toggle('single', mode === 'single');
+    pages.forEach(p => src.appendChild(p));
+    book.innerHTML = '';
+    leaves = [];
+    const per = mode === 'book' ? 2 : 1;
+    L = Math.ceil(P / per);
+    for (let i = 0; i < L; i++){
+      const leaf = document.createElement('div'); leaf.className = 'leaf';
+      const fr = document.createElement('div'); fr.className = 'face front';
+      fr.appendChild(pages[i * per]); leaf.appendChild(fr);
+      if (per === 2){
+        const bk = document.createElement('div'); bk.className = 'face back';
+        if (pages[i * 2 + 1]) bk.appendChild(pages[i * 2 + 1]);
+        leaf.appendChild(bk);
+      }
+      leaf.dataset.i = i;
+      book.appendChild(leaf); leaves.push(leaf);
+    }
+    leaves.forEach(l => l.style.transition = 'none');
+    pos = posFor(curPage);
+    render(true);
+    requestAnimationFrame(() => requestAnimationFrame(() => leaves.forEach(l => l.style.transition = '')));
+  }
+
+  function maxPos(){ return mode === 'book' ? L : L - 1; }
+  function posFor(n){ return mode === 'book' ? Math.floor(n / 2) : n - 1; }
+  function currentPage(){
+    if (!mode) { const m = location.hash.match(/(\d+)/); return m ? Math.min(Math.max(+m[1], 1), P) : 1; }
+    return mode === 'book' ? Math.max(1, pos * 2) : pos + 1;
+  }
+
+  let normTimer = null;
+  function render(instant, changed){
+    leaves.forEach((l, i) => l.classList.toggle('flipped', i < pos));
+    const norm = () => leaves.forEach((l, i) => l.style.zIndex = i < pos ? i + 1 : L - i + 1);
+    clearTimeout(normTimer);
+    if (instant || !changed){ norm(); }
+    else {
+      changed.forEach((i, k) => leaves[i].style.zIndex = 500 + k);
+      normTimer = setTimeout(norm, 1000 + changed.length * 60);
+    }
+    if (mode === 'book'){
+      const shift = pos === 0 ? -pw / 2 : (pos === L ? pw / 2 : 0);
+      book.style.transform = 'translateX(' + shift + 'px)';
+      book.style.setProperty('--shL', pos === 0 ? '50%' : '0');
+      book.style.setProperty('--shR', pos === L ? '50%' : '0');
+    } else book.style.transform = '';
+    // brojač
+    let t;
+    if (mode === 'book'){
+      if (pos === 0) t = 'Naslovnica';
+      else if (pos === L) t = 'Str. ' + P + ' / ' + P;
+      else { const a = pos * 2, b = Math.min(a + 1, P); t = 'Str. ' + a + (b !== a ? '-' + b : '') + ' / ' + P; }
+    } else t = 'Str. ' + (pos + 1) + ' / ' + P;
+    ind.textContent = t;
+    document.getElementById('bPrev').disabled = pos === 0;
+    document.getElementById('bFirst').disabled = pos === 0;
+    document.getElementById('bNext').disabled = pos === maxPos();
+    const cp = currentPage();
+    if (history.replaceState) history.replaceState(null, '', '#str-' + cp);
+    // vrati scroll na vrh na mobitelu
+    if (mode === 'single') { const pg = pages[pos]; if (pg) pg.scrollTop = 0; }
+  }
+
+  function setPos(np){
+    np = Math.max(0, Math.min(maxPos(), np));
+    if (np === pos) return;
+    const changed = [];
+    if (np > pos){ for (let i = pos; i < np; i++) changed.push(i); }
+    else { for (let i = pos - 1; i >= np; i--) changed.push(i); }
+    const stagger = changed.length > 1 ? 70 : 0;
+    const old = pos; pos = np;
+    if (stagger){
+      // listaj više stranica redom
+      leaves.forEach((l, i) => l.style.transitionDelay = '0ms');
+      changed.forEach((i, k) => leaves[i].style.transitionDelay = (k * stagger) + 'ms');
+      setTimeout(() => leaves.forEach(l => l.style.transitionDelay = ''), 1200 + changed.length * stagger);
+    }
+    render(false, changed);
+  }
+  function next(){ setPos(pos + 1); }
+  function prev(){ setPos(pos - 1); }
+  function goTo(n){ setPos(posFor(Math.max(1, Math.min(P, n)))); }
+  window.irGoTo = goTo;
+
+  // klikovi
+  book.addEventListener('click', e => {
+    const g = e.target.closest('[data-goto]');
+    if (g){ e.stopPropagation(); goTo(+g.dataset.goto); return; }
+    if (mode !== 'book') return;
+    const leaf = e.target.closest('.leaf'); if (!leaf) return;
+    if (leaf.classList.contains('flipped')) prev(); else next();
+  });
+  document.getElementById('bNext').onclick = next;
+  document.getElementById('bPrev').onclick = prev;
+  document.getElementById('bFirst').onclick = () => setPos(0);
+  const toc = document.getElementById('toc');
+  document.getElementById('bToc').onclick = () => toc.classList.add('open');
+  function closeToc(){ toc.classList.remove('open'); }
+  toc.addEventListener('click', e => { if (e.target === toc) closeToc(); });
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') return closeToc();
+    if (toc.classList.contains('open')) return;
+    if (['ArrowRight','PageDown',' '].includes(e.key)){ e.preventDefault(); next(); }
+    else if (['ArrowLeft','PageUp'].includes(e.key)){ e.preventDefault(); prev(); }
+    else if (e.key === 'Home') setPos(0);
+    else if (e.key === 'End') setPos(maxPos());
+  });
+
+  // swipe
+  let sx = 0, sy = 0, st = 0;
+  const stage = document.getElementById('stage');
+  stage.addEventListener('touchstart', e => { const t = e.touches[0]; sx = t.clientX; sy = t.clientY; st = Date.now(); }, {passive:true});
+  stage.addEventListener('touchend', e => {
+    const t = e.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy;
+    if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy) * 1.3 && Date.now() - st < 800){ dx < 0 ? next() : prev(); }
+  }, {passive:true});
+
+  let rT;
+  window.addEventListener('resize', () => {
+    clearTimeout(rT);
+    rT = setTimeout(() => { const m = dims(); if (m !== mode) build(m); else render(true); }, 120);
+  });
+
+  build(dims());
+
+  // savjet za listanje
+  const hint = document.getElementById('hint');
+  if (mode === 'single') hint.textContent = 'Listaj prstom lijevo i desno';
+  setTimeout(() => hint.style.opacity = 0, 3500);
+})();
+</script>
+</body>
+</html>
